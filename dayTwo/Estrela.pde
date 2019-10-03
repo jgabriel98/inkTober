@@ -22,7 +22,7 @@ public class Estrela{
 
   
   public void draw(){
-    if(frameCount % (FPS/frames.length) == 0)
+    if(frameCount % (frameRate/frames.length) == 0)
       frame = ++frame % frames.length;
     image(frames[frame], getX(), getY());
   }

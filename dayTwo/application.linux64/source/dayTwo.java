@@ -21,7 +21,7 @@ float theta;
 float R, inner_R;
 
 PImage rosto;
-Estrela[] estrelas = new Estrela[4*300];
+Estrela[] estrelas = new Estrela[4*350];
 
 
 
@@ -46,7 +46,7 @@ public void setup() {
 
 float rotation = 0;
 public void draw() {
-  util.setGradient(0, 0, width, height, color(0xff030415), color(0xff111124), 'y');
+  util.setGradient(0, 0, width, height, color(0xff030415), color(0xff111120), 'y');
 
   desenhaEstrelas();
 
@@ -54,35 +54,60 @@ public void draw() {
 
   stroke(255);
   // Let's pick an angle 0 to 90 degrees based on the mouse position
-  float a = ((height-mouseY) / (float) width) * 135;
-  println(a," - ", mouseY);
-  // Convert it to radians
+  float a = ((height-mouseY) / (float) height) * 120;
   theta = radians(a);
+  
   pushMatrix();
-  // Start the tree from the bottom of the screen
-  translate(width/2,height/2);
-  // Draw a line 120 pixels
-  //line(0,0,0,-230);
-  // Move to the end of that line
-  translate(0,-70);
+  
+  translate(width/2,height/2);// começa a arvore/cerebro no meio da tela
+  translate(0,-70);  //move so mais um pouquinho
+  
+  int c1 = lerpColor(0xff98B2E8,0xffFFFFFF, mouseY / (float) height); //#7600AA
+  int c2 = lerpColor(0xffC505E2,0xffFFFFFF, mouseY / (float) height); //#7600AA
   // Start the recursive branching!
-  branch(150, theta, 0xff98B2E8, 0xff7600AA);
+  branch(150, theta, 0.68f, c1, c2);
   popMatrix();
+  
   
   pushMatrix();
   translate(width/2, height/2);
   rotate(radians(180));
-  translate(0,70);
-  branch(170,radians(23), 0xff455C8E, 0xff554243);
+  
+  
+  calcPulseStep();
+  float pulse_range = (1-(mouseY / (float)height));
+  int c3 = lerpColor(0xff455C8E, 0xffD83D3D, pulse_step * pulse_range*1.5f);  //pulsar entre a cor normal e vermelho
+  stroke(lerpColor(c1,c3, 0.5f));
+  line(0,0,0,70);
+  
+  branch(200,radians(25), 0.58f, c3, 0xff554243);
   popMatrix();
   
   image(rosto, width/2, height/2);
 }
 
+float pulse_step = 0.0f;
+boolean pulse_direction = true;  //true para valor subindo, false para descendo
+public void calcPulseStep(){
+  float step_size = 0.70f / frameRate;  //ciclo com duração de 0.70/s (0,7 ciclo a cada 1 segundos)
+  
+  if(pulse_step+step_size >= 0.999f)
+    pulse_direction = false;
+  else if(pulse_step-step_size <= 0.001f)
+    pulse_direction = true;
+  
+  if(pulse_direction == true){
+    pulse_step += step_size;
+  }else{
+    pulse_step -= step_size; 
+  }
+  
+}
 
-public void branch(float h, float theta, int c1, int finalColor) {
+
+public void branch(float h, float theta, float growth_rate, int c1, int finalColor) {
   // Each branch will be 2/3rds the size of the previous one
-  h *= 0.68f;
+  h *= growth_rate;
   int c2= lerpColor(c1, finalColor, 1/h);
   
   // All recursive functions must have an exit condition!!!!
@@ -99,7 +124,7 @@ public void branch(float h, float theta, int c1, int finalColor) {
     endShape();
     
     translate(0, -h); // Move to the end of the branch
-    branch(h, theta, c2, finalColor);       // Ok, now call myself to draw two new branches!!
+    branch(h, theta, growth_rate, c2, finalColor);       // Ok, now call myself to draw two new branches!!
     popMatrix();     // Whenever we get back here, we "pop" in order to restore the previous matrix state
     
     // Repeat the same thing, only branch off to the "left" this time!
@@ -114,13 +139,13 @@ public void branch(float h, float theta, int c1, int finalColor) {
     endShape();
     
     translate(0, -h);
-    branch(h, theta, c2, finalColor);
+    branch(h, theta, growth_rate, c2, finalColor);
     popMatrix();
   }
 }
 
 float angle = 0;
-float speed = 0.001f / frameRate;
+float speed = 0.0005f / frameRate;
 public void desenhaEstrelas(){
   for(int i=0; i<estrelas.length; i++){
     pushMatrix();
@@ -131,8 +156,6 @@ public void desenhaEstrelas(){
     popMatrix();
   }
 }
-
-
 public class Estrela{
   int x, y;
   private int width=0, height=0;
@@ -157,7 +180,7 @@ public class Estrela{
 
   
   public void draw(){
-    if(frameCount % (FPS/frames.length) == 0)
+    if(frameCount % (frameRate/frames.length) == 0)
       frame = ++frame % frames.length;
     image(frames[frame], getX(), getY());
   }
