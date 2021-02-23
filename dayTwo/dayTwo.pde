@@ -33,6 +33,8 @@ void draw() {
   util.setGradient(0, 0, width, height, color(#030415), color(#111120), 'y');
 
   desenhaEstrelas();
+  controla_aparencia_do_cursor();
+  
 
 
 
@@ -138,5 +140,13 @@ void desenhaEstrelas(){
     rotate(radians(angle+=speed));
     estrelas[i].draw();
     popMatrix();
+  }
+}
+
+void controla_aparencia_do_cursor(){
+  if(mousePressed == false){
+    noCursor();
+  } else {
+    cursor(ARROW);
   }
 }
